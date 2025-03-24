@@ -47,7 +47,9 @@ func NewForsetiServer() (*ForsetiServer, error) {
 		http: r,
 		repo: &DummyRepo{},
 	}
-
+	r.GET("/v1/health", func(context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H{"ok": true})
+	})
 	r.POST("/v1/transfers", s.CollectTransfer)
 	return s, nil
 }

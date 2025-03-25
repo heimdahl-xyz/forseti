@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: forseti_user
+      POSTGRES_PASSWORD: forseti_password
+      POSTGRES_DB: forseti_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  forseti-server:
+    build: .
+    ports:
+      - "9009:9009"
+    depends_on:
+      - postgres
+    environment:
+      FORSETI_DB: "postgres://forseti_user:forseti_password@postgres:5432/forseti_db?sslmode=disable"
+#      DATABASE_HOST: postgres
+#      DATABASE_USER: forseti_user
+#      DATABASE_PASSWORD: forseti_password
+#      DATABASE_NAME: forseti_db
+
+volumes:
+  postgres_data:

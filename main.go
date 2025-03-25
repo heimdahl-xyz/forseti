@@ -1,52 +1,34 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/heimdahl-xyz/forseti/repositories"
+	"github.com/heimdahl-xyz/forseti/types"
 	"log"
-	"math/big"
 	"net/http"
+	"os"
 )
-
-type FTMessage struct {
-	Timestamp    int64    `json:"timestamp"`
-	FromAddress  string   `json:"from_address"`
-	FromOwner    string   `json:"from_owner,omitempty"`
-	ToAddress    string   `json:"to_address"`
-	ToOwner      string   `json:"to_owner,omitempty"`
-	Amount       *big.Int `json:"amount"`
-	TokenAddress string   `json:"token_address"`
-	Symbol       string   `json:"symbol"`
-	Chain        string   `json:"chain"`
-	Network      string   `json:"network"`
-	TxHash       string   `json:"tx_hash"`
-	Decimals     uint8    `json:"decimals"`
-	Position     uint64   `json:"position"`
-}
-
-type CollectorRepository interface {
-	SaveTransfer(ft *FTMessage) error
-}
-
-type DummyRepo struct {
-}
-
-func (d *DummyRepo) SaveTransfer(ft *FTMessage) error {
-	log.Printf("saved message %+v", ft)
-	return nil
-}
 
 type ForsetiServer struct {
 	http *gin.Engine
-	repo CollectorRepository
+	repo types.Processor
 }
 
 func NewForsetiServer() (*ForsetiServer, error) {
 	r := gin.Default()
 
+	db := os.Getenv("FORSETI_DB")
+	pgdb, err := repositories.NewPostgresRepository(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup db %s", err)
+	}
+
 	s := &ForsetiServer{
 		http: r,
-		repo: &DummyRepo{},
+		repo: pgdb,
 	}
+
 	r.GET("/v1/health", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{"ok": true})
 	})
@@ -55,16 +37,16 @@ func NewForsetiServer() (*ForsetiServer, error) {
 }
 
 func (s *ForsetiServer) CollectTransfer(ctx *gin.Context) {
-	var ft FTMessage
+	var ft types.FTMessage
 
 	if err := ctx.ShouldBindJSON(&ft); err != nil {
-		log.Println("failed to parse transfer message %s", err)
+		log.Printf("failed to parse transfer message %s", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := s.repo.SaveTransfer(&ft); err != nil {
-		log.Println("failed to save transfer message %s", err)
+	if err := s.repo.ProcessTransfer(&ft); err != nil {
+		log.Printf("failed to save transfer message %s", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -28,7 +28,7 @@ aggregator platform**. It utilizes Docker Compose for easy setup and operation.
 1. Clone the repository:
 
    ```bash
-   git clone [https://github.com/yourusername/forseti.git](https://www.google.com/search?q=https://github.com/yourusername/forseti.git)
+   git clone https://github.com/heimdahl-xyz/forseti.git
    cd forseti
    ```
 

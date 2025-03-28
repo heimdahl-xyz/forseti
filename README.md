@@ -1,6 +1,6 @@
 # Forseti: Open Source Data Collector for Heimdahl Platform
 
-Forseti is an open-source tool designed to collect and index real-time token transfers from Heimdahl **onchain data
+Forseti is an open-source tool designed to collect and index real-time data from Heimdahl **onchain data
 aggregator platform**. It utilizes Docker Compose for easy setup and operation.
 
 ## Features
